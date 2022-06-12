@@ -29,7 +29,7 @@ const products = [
 ];
 
 (async () => {
-    const db = knex(options.sqlite);
+    const db = knex(options.mysql);
     try {
         /**create table */
         await db.schema.createTableIfNotExists('products', (table) => {
