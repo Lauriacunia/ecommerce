@@ -1,14 +1,14 @@
 /**Equivalente a apiClass-> Contiene las peticiones a la DB */
 import knex from 'knex';
 import { options } from '../config/configDB.js';
-
+const db = knex(options.mysql);
+const table = 'products';
 class ProductController {
     constructor() {
     }
-    
     async getAllProducts(req, res) {
         try{
-            const products = await knex(options.mysql)('products').select('*');
+            const products = await db(table).select('*');
             res.status(200).json({products: products});
         }
         catch(error){
@@ -18,7 +18,7 @@ class ProductController {
     async getOneProduct(req, res) {
         try{
             const { id } = req.params;
-            const product = await knex(options.mysql)('products').select('*').where('id', id);
+            const product = await db(table).select('*').where('id', id);
             !product.length ? res.status(404).json({message: 'Product not found'}) : res.status(200).json({product: product});
         }
         catch(error){
@@ -28,7 +28,7 @@ class ProductController {
     async createProduct(req, res) {
         try{
             const { name, description, price, thumbnail,code,stock } = req.body;
-            const product = await knex(options.mysql)('products').insert({
+            const product = await db(table).insert({
                 name,
                 description,
                 price,
@@ -36,9 +36,10 @@ class ProductController {
                 code,
                 stock
             });
+            const new_product = await db(table).select('*').where('id', product);
             res.status(201).json({
                 message: 'Product created',
-                new_product: product});
+                new_product: new_product});
         }
         catch(error){
             res.status(500).json({message: error.message});
@@ -48,7 +49,7 @@ class ProductController {
         try{
             const { id } = req.params;
             const { name, description, price, thumbnail,code,stock } = req.body;
-            const product = await knex(options.mysql)('products').where('id', id).update({
+            await db(table).where('id', id).update({
                 name,
                 description,
                 price,
@@ -69,7 +70,7 @@ class ProductController {
     async deleteProductById(req, res) {
         try{
             const { id } = req.params;
-            const product = await knex(options.mysql)('products').where('id', id).del();
+            const product = await db(table).where('id', id).del();
             res.status(200).json({
                 message: 'Product deleted',
                 product_id: product
